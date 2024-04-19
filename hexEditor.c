@@ -122,35 +122,34 @@ int edita(char *filename)
   move(ren, col);
   // getchar(); // NEA
   int c = getch();
+  bool canGoUp = false; // Añade esta variable al inicio de tu programa
+  int contador = 0;
   while (c != 26)
   {
     switch (c)
     {
     case KEY_LEFT:
-      if (col == 0)
-      {
-        col = 0;
-      }
-      else
+      if (col > 0)
       {
         col -= 3;
       }
-
       break;
     case KEY_RIGHT:
-      if (col == 72)
+      if (col < 72)
       {
-        col = 0;
+        col += 3;
       }
       else
       {
-        col += 3;
+        col = 0; // Permite que cuando llegue al finla se regrese a cero
       }
       break;
     case KEY_DOWN:
       if (ren < 24)
       {
+        contador++;
         ren++;
+        canGoUp = true; // Cambia la variable a true cuando se presiona KEY_DOWN
       }
       else
       {
@@ -162,13 +161,20 @@ int edita(char *filename)
           move(i, 0);
           addstr(l);
         }
-        ren = 24; // Reinicia la posición del renglón en 24
+        contador++;
+        // ren = 24; // Reinicia la posición del renglón en 24
       }
       break;
     case KEY_UP:
-      if (ren == 0) // Cuando estas en la posicion inicial y vas hacia arriba se rompe.
+      if (contador != 0) // Solo permite moverse hacia arriba si canGoUp es true
       {
-        if (map > 0) // Verifica que no estés en el inicio del archivo
+        if (ren > 0)
+        {
+          ren--;
+          contador--;
+          // printf("\nContador: %d, \n",contador);
+        }
+        else if (map > 0) // Verifica que no estés en el inicio del archivo
         {
           map -= 16; // Mueve el puntero al bloque anterior de 16 renglones
           clear();
@@ -178,12 +184,16 @@ int edita(char *filename)
             move(i, 0);
             addstr(l);
           }
-          ren = 0; // Reinicia la posición del renglón en 0
+          // ren--
+          contador--;
+          // ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
         }
       }
-      else if (ren < 25)
+      else
       {
-        ren--;
+        // ren = 0;
+        // col =1500;
+        move(0, 3); // AQUI MANDARLO AL ÚLTIMO.
       }
       break;
     }
