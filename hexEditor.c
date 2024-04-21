@@ -7,14 +7,14 @@
 #include <curses.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <signal.h>
 
 /* Variable global para mejor legibilidad */
 int fd; // Archivo a leer
-
 // Aqui se mapea la forma en la que se muestran los valores
 char *hazLinea(char *base, int dir)
 {
-  char linea[100]; // La linea es mas pequeña
+  char linea[200]; // La linea es mas pequeña
   int o = 0;
   // Muestra 16 caracteres por cada linea
   o += sprintf(linea, "%08x ", dir); // offset en hexadecimal
@@ -41,7 +41,7 @@ char *hazLinea(char *base, int dir)
     }
   }
   sprintf(&linea[o], "\n");
-
+  sprintf(&linea[o], "\n\n\n\nMenu: Primer Elemento: [Ctrl + A]  Ultimo elemento: [Ctrl + B]  Salir: [Ctrl + C]  Buscar: [Ctrl +D] \n"); // Agrega "Hola" al final
   return (strdup(linea));
 }
 
@@ -69,6 +69,18 @@ char *mapFile(char *filePath)
   }
 
   return map;
+}
+
+// Función que se ejecutará cuando se reciba la señal SIGINT
+void cierre(int sig)
+{
+  int row, col;
+  getmaxyx(stdscr, row, col);                         // Obtiene el número de filas y columnas de la consola
+  mvprintw(row + 1, 0, "Saliendo del programa...\n"); // Mueve el cursor a la última fila y escribe el mensaje
+  // sleep(1);
+  refresh(); // Actualiza la consola para mostrar el mensaje
+  endwin();  // Finaliza el modo ncurses
+  exit(0);
 }
 
 int leeChar()
@@ -114,15 +126,14 @@ int edita(char *filename)
     addstr(l);
   }
   refresh();
-
+  signal(SIGINT, cierre);
   int col;
   int ren;
   col = 9;
   ren = 0;
   move(ren, col);
-  // getchar(); // NEA
+
   int c = getch();
-  bool canGoUp = false; // Añade esta variable al inicio de tu programa
   int contador = 0;
   while (c != 26)
   {
@@ -149,7 +160,6 @@ int edita(char *filename)
       {
         contador++;
         ren++;
-        canGoUp = true; // Cambia la variable a true cuando se presiona KEY_DOWN
       }
       else
       {
@@ -162,7 +172,7 @@ int edita(char *filename)
           addstr(l);
         }
         contador++;
-        // ren = 24; // Reinicia la posición del renglón en 24
+        ren = 24; // Reinicia la posición del renglón en 24
       }
       break;
     case KEY_UP:
@@ -172,7 +182,6 @@ int edita(char *filename)
         {
           ren--;
           contador--;
-          // printf("\nContador: %d, \n",contador);
         }
         else if (map > 0) // Verifica que no estés en el inicio del archivo
         {
@@ -184,17 +193,13 @@ int edita(char *filename)
             move(i, 0);
             addstr(l);
           }
-          // ren--
           contador--;
-          // ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
+          ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
         }
       }
-      else
-      {
-        // ren = 0;
-        // col =1500;
-        move(0, 3); // AQUI MANDARLO AL ÚLTIMO.
-      }
+      break;
+    case 3: // CTRL + C
+      cierre(SIGINT);
       break;
     }
     move(ren, col);
@@ -223,8 +228,8 @@ int main(int argc, char const *argv[])
     printf("Se usa %s <archivo> \n", argv[0]);
     return (-1);
   }
-
   edita((char *)argv[1]);
+  // Agrega el menú después de la función edita
 
   endwin();
 
