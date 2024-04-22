@@ -12,6 +12,7 @@
 /* Variable global para mejor legibilidad */
 int fd; // Archivo a leer
 long fs;
+long ultimoElemento = 0;
 // Aqui se mapea la forma en la que se muestran los valores
 char *hazLinea(char *base, int dir)
 {
@@ -120,8 +121,6 @@ int edita(char *filename)
 
   /* Lee archivo */
   char *map = mapFile(filename);
-  printf("\nAntes de entrar el valor es %c\n", map);
-  sleep(1);
   if (map == NULL)
   {
     exit(EXIT_FAILURE);
@@ -140,6 +139,7 @@ int edita(char *filename)
   int ren;
   col = 9;
   ren = 0;
+  long tope = 1474160;
   move(ren, col);
 
   int c = getch();
@@ -165,28 +165,34 @@ int edita(char *filename)
       }
       break;
     case KEY_DOWN:
-      if (ren < 24)
+      if (tope != 0)
       {
-        contador++;
-        ren++;
-      }
-      else
-      {
-        map += 16; // Mueve el puntero al siguiente bloque de 16 renglones
-        clear();
-        for (int i = 0; i < 25; i++)
+        tope--;
+        // agrega aqui contador++ y quitalo abajo
+        if (ren < 24)
         {
-          char *l = hazLinea(map, i * 16);
-          move(i, 0);
-          addstr(l);
+          contador++;
+          ren++;
         }
-        contador++;
-        ren = 24; // Reinicia la posición del renglón en 24
+        else
+        {
+          map += 16; // Mueve el puntero al siguiente bloque de 16 renglones
+          clear();
+          for (int i = 0; i < 25; i++)
+          {
+            char *l = hazLinea(map, i * 16);
+            move(i, 0);
+            addstr(l);
+          }
+          contador++;
+          ren = 24; // Reinicia la posición del renglón en 24
+        }
       }
       break;
     case KEY_UP:
-      if (contador != 0) // Solo permite moverse hacia arriba si canGoUp es true
+      if (contador != 0)
       {
+        tope++;
         if (ren > 0)
         {
           ren--;
@@ -205,7 +211,7 @@ int edita(char *filename)
           contador--;
           ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
         }
-      }
+      } // El ultimo elemento siempre es: 1474160
       break;
     case 1:                    /*CTRL + A */
       map = mapFile(filename); // Usar el puntero map existente, no crear uno nuevo
@@ -226,16 +232,18 @@ int edita(char *filename)
       contador = 0;
       ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
       col = 9;
+      tope = 1474160;
       break;
     case 2: /*CTRL + B */
-      clear();
+      tope = 0;
       // Calcula la posición del último bloque de 16 renglones
-      long lastBlockOffset = fs - (25 * 16);
-      if (lastBlockOffset < 0)
+      ultimoElemento = fs - (25 * 16);
+      clear();
+      if (ultimoElemento < 0)
       {
-        lastBlockOffset = 0;
+        ultimoElemento = 0;
       }
-      map = mapFile(filename) + lastBlockOffset; // Actualiza el puntero map al último bloque
+      map = mapFile(filename) + ultimoElemento; // Actualiza el puntero map al último bloque
       for (int i = 0; i < 25; i++)
       {
         char *l = hazLinea(map, i * 16);
@@ -243,9 +251,10 @@ int edita(char *filename)
         addstr(l);
       }
       refresh();
-      contador = 0;
-      ren = 24; // Establece la posición del renglón en el último
+      contador = 1474160;
+      ren = 24; // Establece la posición del renglón en el último: ESTO ERA
       col = 9;
+
       break;
     case 3: // CTRL + C
       cierre(SIGINT);
