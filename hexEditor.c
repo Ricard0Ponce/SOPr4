@@ -11,6 +11,7 @@
 
 /* Variable global para mejor legibilidad */
 int fd; // Archivo a leer
+long fs;
 // Aqui se mapea la forma en la que se muestran los valores
 char *hazLinea(char *base, int dir)
 {
@@ -58,7 +59,7 @@ char *mapFile(char *filePath)
   /* Mapea archivo */
   struct stat st;
   fstat(fd, &st);
-  long fs = st.st_size;
+  fs = st.st_size;
 
   char *map = mmap(0, fs, PROT_READ, MAP_SHARED, fd, 0);
   if (map == MAP_FAILED)
@@ -81,6 +82,12 @@ void cierre(int sig)
   refresh(); // Actualiza la consola para mostrar el mensaje
   endwin();  // Finaliza el modo ncurses
   exit(0);
+}
+
+void primerElemento(int ren, int col)
+{
+  ren = 0;
+  col = 9;
 }
 
 int leeChar()
@@ -113,6 +120,8 @@ int edita(char *filename)
 
   /* Lee archivo */
   char *map = mapFile(filename);
+  printf("\nAntes de entrar el valor es %c\n", map);
+  sleep(1);
   if (map == NULL)
   {
     exit(EXIT_FAILURE);
@@ -197,6 +206,46 @@ int edita(char *filename)
           ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
         }
       }
+      break;
+    case 1:                    /*CTRL + A */
+      map = mapFile(filename); // Usar el puntero map existente, no crear uno nuevo
+      if (map == NULL)
+      {
+        exit(EXIT_FAILURE);
+      }
+      clear();
+      // Este for define cuantos elementos hay
+      for (int i = 0; i < 25; i++)
+      {
+        // Haz linea, base y offset
+        char *l = hazLinea(map, i * 16);
+        move(i, 0);
+        addstr(l);
+      }
+      refresh();
+      contador = 0;
+      ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
+      col = 9;
+      break;
+    case 2: /*CTRL + B */
+      clear();
+      // Calcula la posición del último bloque de 16 renglones
+      long lastBlockOffset = fs - (25 * 16);
+      if (lastBlockOffset < 0)
+      {
+        lastBlockOffset = 0;
+      }
+      map = mapFile(filename) + lastBlockOffset; // Actualiza el puntero map al último bloque
+      for (int i = 0; i < 25; i++)
+      {
+        char *l = hazLinea(map, i * 16);
+        move(i, 0);
+        addstr(l);
+      }
+      refresh();
+      contador = 0;
+      ren = 24; // Establece la posición del renglón en el último
+      col = 9;
       break;
     case 3: // CTRL + C
       cierre(SIGINT);
