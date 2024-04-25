@@ -139,7 +139,10 @@ int edita(char *filename)
   int ren;
   col = 9;
   ren = 0;
-  long tope = 1474160;
+  /* Mapea archivo */
+  struct stat st;
+  fstat(fd, &st);
+  long tope = st.st_size;
   move(ren, col);
 
   int c = getch();
@@ -232,7 +235,8 @@ int edita(char *filename)
       contador = 0;
       ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
       col = 9;
-      tope = 1474160;
+      tope = st.st_size;
+      ;
       break;
     case 2: /*CTRL + B */
       tope = 0;
