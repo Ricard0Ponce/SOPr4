@@ -8,6 +8,12 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <signal.h>
+/*
+Nombre: Ricardo Antonio Ponce Garcia. 
+Matricula: 2193052801. 
+Fecha: 25/04/2024. 
+*/
+
 
 /* Variable global para mejor legibilidad */
 int fd; // Archivo a leer
@@ -18,9 +24,9 @@ char *hazLinea(char *base, int dir)
 {
   char linea[200]; // La linea es mas pequeña
   int o = 0;
-  // Muestra 16 caracteres por cada linea
+  // Calcula el offset en hexadecimal dinámicamente
   o += sprintf(linea, "%08x ", dir); // offset en hexadecimal
-                                     // El siguiente for muestra la cantidad de elementos que se muestran en renglones
+  // El siguiente for muestra la cantidad de elementos que se muestran en renglones
   for (int i = 0; i < 4; i++)
   {
     unsigned char a, b, c, d;
@@ -76,19 +82,8 @@ char *mapFile(char *filePath)
 // Función que se ejecutará cuando se reciba la señal SIGINT
 void cierre(int sig)
 {
-  int row, col;
-  getmaxyx(stdscr, row, col);                         // Obtiene el número de filas y columnas de la consola
-  mvprintw(row + 1, 0, "Saliendo del programa...\n"); // Mueve el cursor a la última fila y escribe el mensaje
-  // sleep(1);
-  refresh(); // Actualiza la consola para mostrar el mensaje
-  endwin();  // Finaliza el modo ncurses
+  endwin(); // Finaliza el modo ncurses
   exit(0);
-}
-
-void primerElemento(int ren, int col)
-{
-  ren = 0;
-  col = 9;
 }
 
 int leeChar()
@@ -139,12 +134,13 @@ int edita(char *filename)
   int ren;
   col = 9;
   ren = 0;
+  //int aux = 0;
   /* Mapea archivo */
   struct stat st;
   fstat(fd, &st);
+
   long tope = st.st_size;
   move(ren, col);
-
   int c = getch();
   int contador = 0;
   while (c != 26)
@@ -171,7 +167,8 @@ int edita(char *filename)
       if (tope != 0)
       {
         tope--;
-        // agrega aqui contador++ y quitalo abajo
+        // contador++;
+        //  agrega aqui contador++ y quitalo abajo
         if (ren < 24)
         {
           contador++;
@@ -179,15 +176,18 @@ int edita(char *filename)
         }
         else
         {
+          contador++;
           map += 16; // Mueve el puntero al siguiente bloque de 16 renglones
-          clear();
-          for (int i = 0; i < 25; i++)
+          //aux++;
+          clear(); // No mapea la derecha porque siempre es  i= 0
+          for (int i = 0; i < 25; i++) // for (int i = aux; i < (aux+25); i++)
           {
-            char *l = hazLinea(map, i * 16);
-            move(i, 0);
+            // aux = (contador + i) - 1;
+            // aux = ((contador) * 16) + (i *16); // 
+            char *l = hazLinea(map, (i * 16));
+            move(i, 0);//move(i-aux, 0);
             addstr(l);
           }
-          contador++;
           ren = 24; // Reinicia la posición del renglón en 24
         }
       }
@@ -214,7 +214,7 @@ int edita(char *filename)
           contador--;
           ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
         }
-      } // El ultimo elemento siempre es: 1474160
+      } // El ultimo elemento siempre es: 1474160 para Disk1.DSK
       break;
     case 1:                    /*CTRL + A */
       map = mapFile(filename); // Usar el puntero map existente, no crear uno nuevo
@@ -226,8 +226,9 @@ int edita(char *filename)
       // Este for define cuantos elementos hay
       for (int i = 0; i < 25; i++)
       {
-        // Haz linea, base y offset
-        char *l = hazLinea(map, i * 16);
+        // aux = contador + i;
+        //  Haz linea, base y offset
+        char *l = hazLinea(map, i * 16); // Antes i * 16
         move(i, 0);
         addstr(l);
       }
@@ -255,10 +256,9 @@ int edita(char *filename)
         addstr(l);
       }
       refresh();
-      contador = 1474160;
-      ren = 24; // Establece la posición del renglón en el último: ESTO ERA
+      contador = st.st_size;
+      ren = 24;
       col = 9;
-
       break;
     case 3: // CTRL + C
       cierre(SIGINT);
@@ -291,8 +291,6 @@ int main(int argc, char const *argv[])
     return (-1);
   }
   edita((char *)argv[1]);
-  // Agrega el menú después de la función edita
-
   endwin();
 
   return 0;
