@@ -9,11 +9,10 @@
 #include <sys/mman.h>
 #include <signal.h>
 /*
-Nombre: Ricardo Antonio Ponce Garcia. 
-Matricula: 2193052801. 
-Fecha: 25/04/2024. 
+Nombre: Ricardo Antonio Ponce Garcia.
+Matricula: 2193052801.
+Fecha: 25/04/2024.
 */
-
 
 /* Variable global para mejor legibilidad */
 int fd; // Archivo a leer
@@ -134,7 +133,8 @@ int edita(char *filename)
   int ren;
   col = 9;
   ren = 0;
-  //int aux = 0;
+  int aux = 0;
+  int aux2=1;
   /* Mapea archivo */
   struct stat st;
   fstat(fd, &st);
@@ -160,7 +160,7 @@ int edita(char *filename)
       }
       else
       {
-        col = 0; // Permite que cuando llegue al finla se regrese a cero
+        col = 0; // Permite que cuando llegue al final se regrese a cero
       }
       break;
     case KEY_DOWN:
@@ -168,7 +168,6 @@ int edita(char *filename)
       {
         tope--;
         // contador++;
-        //  agrega aqui contador++ y quitalo abajo
         if (ren < 24)
         {
           contador++;
@@ -177,18 +176,18 @@ int edita(char *filename)
         else
         {
           contador++;
-          map += 16; // Mueve el puntero al siguiente bloque de 16 renglones
+          aux += 16;                   // Mueve el puntero al siguiente bloque de 16 renglones
+          clear();                   
           //aux++;
-          clear(); // No mapea la derecha porque siempre es  i= 0
-          for (int i = 0; i < 25; i++) // for (int i = aux; i < (aux+25); i++)
+          for (int i = 0; i < 25; i++) 
           {
-            // aux = (contador + i) - 1;
-            // aux = ((contador) * 16) + (i *16); // 
-            char *l = hazLinea(map, (i * 16));
-            move(i, 0);//move(i-aux, 0);
+            char *l = hazLinea(map, aux+ i * 16); // aux2;
+            move(i , 0); // move(i-aux, 0);
             addstr(l);
           }
-          ren = 24; // Reinicia la posición del renglón en 24
+          //aux++;
+          //aux2=0;
+          //ren = 24; // Reinicia la posición del renglón en 24
         }
       }
       break;
@@ -203,11 +202,11 @@ int edita(char *filename)
         }
         else if (map > 0) // Verifica que no estés en el inicio del archivo
         {
-          map -= 16; // Mueve el puntero al bloque anterior de 16 renglones
+          aux -= 16; // Mueve el puntero al bloque anterior de 16 renglones
           clear();
           for (int i = 0; i < 25; i++)
           {
-            char *l = hazLinea(map, i * 16);
+            char *l = hazLinea(map, (aux+i) * 16);
             move(i, 0);
             addstr(l);
           }
@@ -237,26 +236,31 @@ int edita(char *filename)
       ren = 0; // Reinicia la posición del renglón en 0 solo si se pudo mover el puntero
       col = 9;
       tope = st.st_size;
-      ;
+      aux = 0;
       break;
     case 2: /*CTRL + B */
       tope = 0;
       // Calcula la posición del último bloque de 16 renglones
       ultimoElemento = fs - (25 * 16);
+      //aux = tope;
       clear();
       if (ultimoElemento < 0)
       {
         ultimoElemento = 0;
       }
       map = mapFile(filename) + ultimoElemento; // Actualiza el puntero map al último bloque
+      //aux = mapFile(filename) + ultimoElemento;
+      aux=0;
+      contador = st.st_size;
+      aux = (int)(ultimoElemento / 16) - 25;
       for (int i = 0; i < 25; i++)
       {
-        char *l = hazLinea(map, i * 16);
+        char *l = hazLinea(map, (aux+i) * 16);
         move(i, 0);
         addstr(l);
       }
       refresh();
-      contador = st.st_size;
+      //contador = st.st_size;
       ren = 24;
       col = 9;
       break;
@@ -295,3 +299,22 @@ int main(int argc, char const *argv[])
 
   return 0;
 }
+
+// hi =  *(unsigned char *) &map(0x1BE + i*16+1); ///si ci
+// Tamaño de un sector = 512
+// Dame la direccion (HEX) -> Ctrl + G
+// Primero obtener la direccion de las particiones.
+//
+
+/*
+struct mbr {
+  unsigned char hi, si, ci, ts,hf,sf,cf;
+  unsigned int lba, tamS;
+} mbr;
+ts = tipo del sistema
+*/
+
+// Usamos memcpy
+/*
+memcpy(&mbr, &map[0x1BE+i*16],sizeof(mbr));
+*/
