@@ -134,7 +134,7 @@ int edita(char *filename)
   col = 9;
   ren = 0;
   int aux = 0;
-  int aux2=1;
+  int aux2 = 1;
   /* Mapea archivo */
   struct stat st;
   fstat(fd, &st);
@@ -176,18 +176,18 @@ int edita(char *filename)
         else
         {
           contador++;
-          aux += 16;                   // Mueve el puntero al siguiente bloque de 16 renglones
-          clear();                   
-          //aux++;
-          for (int i = 0; i < 25; i++) 
+          aux += 16; // Mueve el puntero al siguiente bloque de 16 renglones
+          clear();
+          // aux++;
+          for (int i = 0; i < 25; i++)
           {
-            char *l = hazLinea(map, aux+ i * 16); // aux2;
-            move(i , 0); // move(i-aux, 0);
+            char *l = hazLinea(map, aux + i * 16); // aux2;
+            move(i, 0);                            // move(i-aux, 0);
             addstr(l);
           }
-          //aux++;
-          //aux2=0;
-          //ren = 24; // Reinicia la posición del renglón en 24
+          // aux++;
+          // aux2=0;
+          // ren = 24; // Reinicia la posición del renglón en 24
         }
       }
       break;
@@ -206,7 +206,7 @@ int edita(char *filename)
           clear();
           for (int i = 0; i < 25; i++)
           {
-            char *l = hazLinea(map, (aux+i) * 16);
+            char *l = hazLinea(map, aux + i * 16);
             move(i, 0);
             addstr(l);
           }
@@ -242,25 +242,25 @@ int edita(char *filename)
       tope = 0;
       // Calcula la posición del último bloque de 16 renglones
       ultimoElemento = fs - (25 * 16);
-      //aux = tope;
+      // aux = tope;
       clear();
       if (ultimoElemento < 0)
       {
         ultimoElemento = 0;
       }
       map = mapFile(filename) + ultimoElemento; // Actualiza el puntero map al último bloque
-      //aux = mapFile(filename) + ultimoElemento;
-      aux=0;
+      // aux = mapFile(filename) + ultimoElemento;
+      aux = 0;
       contador = st.st_size;
       aux = (int)(ultimoElemento / 16) - 25;
       for (int i = 0; i < 25; i++)
       {
-        char *l = hazLinea(map, (aux+i) * 16);
+        char *l = hazLinea(map, aux + i * 16);
         move(i, 0);
         addstr(l);
       }
       refresh();
-      //contador = st.st_size;
+      // contador = st.st_size;
       ren = 24;
       col = 9;
       break;
