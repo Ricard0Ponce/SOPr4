@@ -267,6 +267,31 @@ int edita(char *filename)
     case 3: // CTRL + C
       cierre(SIGINT);
       break;
+    case 4: // CTRL + D
+      int pos = 0;
+      ultimoElemento = fs - (25 * 16);
+      clear();
+      endwin();
+      printf("\nEscriba la posicion buscada: \n");
+      scanf("%x", &pos);
+      if (pos < ultimoElemento)
+      {
+        tope = pos / 16 + 1;  // Actualiza 'tope' al bloque siguiente al bloque donde se encuentra la posición buscada
+        contador = pos / 16;  // Actualiza 'contador' al bloque en el que se encuentra la posición buscada
+        aux = pos - ren * 16; // Actualiza 'aux' para reflejar la nueva posición en el bloque
+        for (int i = 0; i < 25; i++)
+        {
+          char *l = hazLinea(map, aux + i * 16); // Utiliza 'aux' para calcular la posición en el bloque
+          move(i, 0);
+          addstr(l);
+        }
+      }
+      else
+      {
+        endwin();
+        printf("\nDireccion no encontrada \n");
+      }
+      break;
     }
     move(ren, col);
     c = getch();
